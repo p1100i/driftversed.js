@@ -14,6 +14,7 @@ var
   ONE_POINT_TWO         = 1.015,
   ASSET_NAMES           = ['s', 'h'],
   C_TICK                = 5,
+  GARBAGE_COLLECT_TICK  = 400,
 
   QUOTES = [
     'Clear skies with a chance of satellite debris.',
@@ -60,6 +61,8 @@ var
   canvasHolder,
   hpHolder,
   storyHolder,
+  hasUpdater,
+  tick                = 0,
   lastUpdateTimestamp = 0,
 
   assetsToLoad  = ASSET_NAMES.length,
@@ -85,6 +88,13 @@ var
     return Math.floor(number / E_S) * E_S + HALF_E_S;
   },
 
+  removeBorder = function removeBorder(border) {
+    var canvasId = border.co.i;
+
+    delete borders[canvasId][getBorderKey(border)];
+    delete borders[canvasId][getBorderIndex(border)];
+  },
+
   removeObject = function removeObject(object) {
     if (object.t === 'b') {
       removeBorder(object);
@@ -97,17 +107,31 @@ var
     removeFromArray(multiObjects, index);
   },
 
-  removeBorder = function removeBorder(border) {
-    var canvasId = border.co.i;
+  garbageCollectMultiObject = function garbageCollectMultiObject(multiObject, index) {
+    var
+      object  = multiObject && multiObject[0],
+      type    = object && object.t,
+      isSmoke = type || type === 's';
 
-    delete borders[canvasId][getBorderKey(border)];
-    delete borders[canvasId][getBorderIndex(border)];
+    if (!isSmoke || object.o > 0) {
+      return;
+    }
+
+    removeFromArray(multiObjects, index);
   },
-
 
   clearLevel = function clearLevel() {
     while (multiObjects.length) {
       removeMultiObject(multiObjects[0], 0);
+    }
+  },
+
+  garbageCollectLevel = function garbageCollectLevel() {
+    var
+      len = multiObjects.length;
+
+    while (len--) {
+      garbageCollectMultiObject(multiObjects[len], len);
     }
   },
 
@@ -547,7 +571,10 @@ var
     // diff will be around 16
     var
       i,
+      goNextLevel,
       diff = Math.abs(lastUpdateTimestamp - timestamp);
+
+    tick++;
 
     canvasObjects.forEach(updateCanvas.bind(0, diff));
 
@@ -561,26 +588,20 @@ var
 
     if (levelCompleted) {
       // TODO make pretty anim
-      if (timeOut) {
-        return;
-      }
-
-      if (levelCompleted > 0) {
+      if (!timeOut) {
         timeOut = window.setTimeout(function () {
-          window.clearInterval(interval);
-          run(1);
-          timeOut = null;
-        }, 2000);
-      } else {
-        timeOut = window.setTimeout(function () {
-          window.clearInterval(interval);
-          run(0);
+          goNextLevel = levelCompleted > 0;
+          run(goNextLevel ? 1 : 0);
           timeOut = null;
         }, 2000);
       }
-
-      return;
     }
+
+    if (tick % GARBAGE_COLLECT_TICK === 0) {
+      garbageCollectLevel();
+    }
+
+    window.requestAnimationFrame(update);
   },
 
   createObject = function createObject(params, canvasObject) {
@@ -824,7 +845,12 @@ var
 
     populate();
 
-    interval = setInterval(update, 18);
+    if (hasUpdater) {
+      return;
+    }
+
+    hasUpdater = true;
+    window.requestAnimationFrame(update);
   },
 
   setupCanvasObject = function setupCanvasObject(id, i) {
