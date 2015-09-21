@@ -1,16 +1,16 @@
 #About
-
 This was a project made for the [js13kGames][js13k].
 
-#Try it on
+##Try it on
 - [js13kGames game page][js13k-driftversed]
 - [github.io game page][github.io]
 
+##Screenshots
 ![driftversed][screenshot-intro]
 ![driftversed][screenshot-game]
 
 
-#TODO
+##TODO
 
 + zip w/ build.sh
 + margin for border tiles
@@ -23,19 +23,21 @@ This was a project made for the [js13kGames][js13k].
 + die somehow
 + three static levels bound together
 + improve UI
-  + configure z-indexes
-  + menu bar on enter
-  + restart
-  + level in cookie
-  + won
++ configure z-indexes
++ menu bar on enter
++ restart
++ level in cookie
++ won
++ garbage collect smoke
+- music
+- jet fuel
+  + roll
+  - splash
 
-  - NTH
-  - music
-  - jet fuel
-    + roll
-    - splash
-  - garbage collect smoke
+## License
+[MIT License][git-LICENSE]
 
+  [git-LICENSE]: LICENSE
   [js13k]: https://www.npmjs.org/package/quadtree2
   [screenshot-intro]: screen-large-intro.png
   [screenshot-game]: screen-large.png
